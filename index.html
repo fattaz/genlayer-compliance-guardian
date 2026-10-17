@@ -7,30 +7,31 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-center p-6">
-    <div class="max-w-xl w-full bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
-        <h1 class="text-2xl font-bold mb-2 text-cyan-400">TaskGuard DApp</h1>
+    <div class="max-w-2xl w-full bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
+        <h1 class="text-3xl font-bold mb-2 text-cyan-400">TaskGuard DApp</h1>
         <p class="text-sm text-slate-400 mb-6">Autonomous web policy enforcement powered by GenLayer consensus.</p>
         
         <div class="space-y-4">
             <div>
                 <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Audit ID</label>
-                <input id="audit-id" type="text" value="audit_001" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-cyan-500">
+                <input id="audit-id" type="text" value="audit_001" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-cyan-500">
             </div>
             <div>
                 <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Target Web URL</label>
-                <input id="target-url" type="text" value="https://example.com" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-cyan-500">
+                <input id="target-url" type="text" value="https://example.com" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-cyan-500">
             </div>
             <div>
                 <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Compliance Rules</label>
-                <textarea id="rules" rows="3" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-cyan-500">Check if the page contains valid terms and secure headers.</textarea>
+                <textarea id="rules" rows="3" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-cyan-500">Check if the page contains valid terms and secure headers.</textarea>
             </div>
             
-            <button onclick="runAudit()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold py-3 rounded-lg transition-all shadow-lg shadow-cyan-900/50 cursor-pointer">
+            <button onclick="runAudit()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold py-3.5 rounded-lg transition-all shadow-lg shadow-cyan-900/50 cursor-pointer text-base">
                 Run On-Chain Audit
             </button>
         </div>
 
-        <div id="audit-report" class="mt-6 p-4 bg-slate-950 border border-slate-800 rounded-lg text-xs font-mono text-slate-300 min-h-[100px] flex flex-col justify-center">
+        <!-- Expanded report box with word-wrap for hashes and details -->
+        <div id="audit-report" class="mt-6 p-5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-slate-300 min-h-[150px] flex flex-col justify-center overflow-x-auto break-all">
             Ready for execution. Enter details above and click run.
         </div>
     </div>
@@ -46,7 +47,6 @@
             account: account,
         });
 
-        // ⚠️ REPLACE THIS WITH YOUR ACTUAL DEPLOYED CONTRACT ADDRESS FROM GENSTUDIO
         const CONTRACT_ADDRESS = "0x5fC1908ac836D0703723953b03C6A46670aECB44";
 
         window.runAudit = async function() {
@@ -66,7 +66,6 @@
 
                 reportBox.innerHTML = `⏳ Transaction submitted (${txHash.slice(0, 10)}...). Waiting for validator consensus...`;
 
-                // Allow consensus settlement time before fetching state
                 await new Promise(resolve => setTimeout(resolve, 4000));
 
                 const status = await client.readContract({
@@ -76,11 +75,11 @@
                 });
 
                 reportBox.innerHTML = `
-                    <div style="color: #00ffcc; font-weight: bold; margin-bottom: 6px;">✓ Consensus finalized across GenLayer validator set.</div>
-                    <div><strong>Audit ID:</strong> ${auditId}</div>
-                    <div><strong>Target:</strong> ${targetUrl}</div>
-                    <div><strong>Status:</strong> <span style="color: #34d399;">${status}</span></div>
-                    <div style="font-size: 10px; color: #64748b; margin-top: 6px;">Tx: ${txHash}</div>
+                    <div style="color: #00ffcc; font-weight: bold; margin-bottom: 8px; font-size: 13px;">✓ Consensus finalized across GenLayer validator set.</div>
+                    <div style="margin-bottom: 4px;"><strong>Audit ID:</strong> ${auditId}</div>
+                    <div style="margin-bottom: 4px;"><strong>Target:</strong> ${targetUrl}</div>
+                    <div style="margin-bottom: 6px;"><strong>Status:</strong> <span style="color: #34d399; font-size: 13px;">${status}</span></div>
+                    <div style="font-size: 11px; color: #94a3b8; word-break: break-all; margin-top: 6px; border-top: 1px solid #1e293b; padding-top: 6px;"><strong>Tx Hash:</strong> ${txHash}</div>
                 `;
             } catch (error) {
                 reportBox.innerHTML = `<span style="color: #f87171;">❌ Error: ${error.message}</span>`;
