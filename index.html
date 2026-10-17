@@ -36,13 +36,18 @@
     </div>
 
     <script type="module">
-        import { createClient } from "https://esm.sh/genlayer-js";
+        import { createClient, createAccount } from "https://esm.sh/genlayer-js";
         import { studionet } from "https://esm.sh/genlayer-js/chains";
+
+        // Create an ephemeral account to sign transactions automatically
+        const account = createAccount();
 
         const client = createClient({
             chain: studionet,
+            account: account,
         });
 
+    
         const CONTRACT_ADDRESS = "0x5fC1908ac836D0703723953b03C6A46670aECB44";
 
         window.runAudit = async function() {
