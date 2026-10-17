@@ -39,7 +39,6 @@
         import { createClient, createAccount } from "https://esm.sh/genlayer-js";
         import { studionet } from "https://esm.sh/genlayer-js/chains";
 
-        // Create an ephemeral account to sign transactions automatically
         const account = createAccount();
 
         const client = createClient({
@@ -47,8 +46,8 @@
             account: account,
         });
 
-    
-        const CONTRACT_ADDRESS = "0x5fC1908ac836D0703723953b03C6A46670aECB44";
+        // ⚠️ REPLACE THIS WITH YOUR ACTUAL DEPLOYED CONTRACT ADDRESS FROM GENSTUDIO
+        const CONTRACT_ADDRESS = "0xYourDeployedContractAddressHere";
 
         window.runAudit = async function() {
             const auditId = document.getElementById("audit-id").value;
@@ -67,7 +66,8 @@
 
                 reportBox.innerHTML = `⏳ Transaction submitted (${txHash.slice(0, 10)}...). Waiting for validator consensus...`;
 
-                const receipt = await client.waitForFinalization({ hash: txHash });
+                // Allow consensus settlement time before fetching state
+                await new Promise(resolve => setTimeout(resolve, 4000));
 
                 const status = await client.readContract({
                     address: CONTRACT_ADDRESS,
