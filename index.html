@@ -25,13 +25,12 @@
                 <textarea id="rules" rows="3" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-cyan-500">Check if the page contains valid terms and secure headers.</textarea>
             </div>
             
-            <!-- Button with ID to control disabled states -->
             <button id="audit-btn" onclick="runAudit()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold py-3.5 rounded-lg transition-all shadow-lg shadow-cyan-900/50 cursor-pointer text-base">
                 Run On-Chain Audit
             </button>
         </div>
 
-        <div id="audit-report" class="mt-6 p-5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-slate-300 min-h-[150px] flex flex-col justify-center overflow-x-auto break-all">
+        <div id="audit-report" class="mt-6 p-5 bg-slate-950 border border-slate-800 rounded-xl text-xs font-mono text-slate-300 min-h-[190px] flex flex-col justify-center overflow-x-auto break-all">
             Ready for execution. Enter details above and click run.
         </div>
     </div>
@@ -47,7 +46,8 @@
             account: account,
         });
 
-        const CONTRACT_ADDRESS = "0x68790eC76Ee3696a06D4515138E4163C143a1239";
+        // ⚠️ REPLACE THIS WITH YOUR ACTUAL DEPLOYED CONTRACT ADDRESS FROM GENSTUDIO
+        const CONTRACT_ADDRESS = "0xYourDeployedContractAddressHere";
 
         window.runAudit = async function() {
             const auditId = document.getElementById("audit-id").value;
@@ -56,21 +56,62 @@
             const reportBox = document.getElementById("audit-report");
             const btn = document.getElementById("audit-btn");
 
-            // 🔒 Lock button & prevent duplicate submissions during execution
+            // Lock button to prevent double-submissions
             btn.disabled = true;
             btn.classList.add("opacity-50", "cursor-not-allowed");
             btn.innerText = "⏳ Running Consensus Audit...";
 
-            reportBox.innerHTML = "⏳ Submitting transaction to GenLayer validators for consensus...";
+            // Helper function to render progressive status indicators
+            function renderProgress(activeStep, txHashDisplay = "", statusText = "", details = "") {
+                let redStyle = "opacity: 0.3; transform: scale(0.9);";
+                let blueStyle = "opacity: 0.3; transform: scale(0.9);";
+                let greenStyle = "opacity: 0.3; transform: scale(0.9);";
+
+                if (activeStep === "undetermined") redStyle = "opacity: 1; transform: scale(1.1); box-shadow: 0 0 10px #f87171;";
+                if (activeStep === "accepted") blueStyle = "opacity: 1; transform: scale(1.1); box-shadow: 0 0 10px #60a5fa;";
+                if (activeStep === "finalized") greenStyle = "opacity: 1; transform: scale(1.1); box-shadow: 0 0 10px #34d399;";
+
+                reportBox.innerHTML = `
+                    <div style="font-weight: bold; margin-bottom: 10px; font-size: 13px; color: ${activeStep === 'finalized' ? '#00ffcc' : '#60a5fa'};">
+                        ${statusText}
+                    </div>
+                    
+                    <!-- Live Explorer Consensus Progress Bar -->
+                    <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 12px; background: #0f172a; padding: 10px 14px; border-radius: 8px; border: 1px solid #1e293b;">
+                        <div style="display: flex; align-items: center; gap: 6px; transition: all 0.3s ease; ${redStyle}">
+                            <span style="width: 10px; height: 10px; background-color: #f87171; border-radius: 50%; display: inline-block;"></span>
+                            <span style="color: #f87171; font-size: 11px; font-weight: bold;">Undetermined</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px; transition: all 0.3s ease; ${blueStyle}">
+                            <span style="width: 10px; height: 10px; background-color: #60a5fa; border-radius: 50%; display: inline-block;"></span>
+                            <span style="color: #60a5fa; font-size: 11px; font-weight: bold;">Accepted</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px; transition: all 0.3s ease; ${greenStyle}">
+                            <span style="width: 10px; height: 10px; background-color: #34d399; border-radius: 50%; display: inline-block;"></span>
+                            <span style="color: #34d399; font-size: 11px; font-weight: bold;">Finalized</span>
+                        </div>
+                    </div>
+
+                    ${details}
+                    ${txHashDisplay ? `<div style="font-size: 11px; color: #94a3b8; word-break: break-all; margin-top: 6px; border-top: 1px solid #1e293b; padding-top: 6px;"><strong>Tx Hash:</strong> ${txHashDisplay}</div>` : ''}
+                `;
+            }
 
             try {
+                // Step 1: Submitting / Undetermined stage
+                renderProgress("undetermined", "", "⏳ Submitting transaction to GenLayer validators...", "<div>Preparing non-deterministic web audit...</div>");
+
                 const txHash = await client.writeContract({
                     address: CONTRACT_ADDRESS,
                     functionName: "run_audit",
                     args: [auditId, targetUrl, rules],
                 });
 
-                reportBox.innerHTML = `⏳ Transaction submitted (${txHash.slice(0, 10)}...). Waiting for validator consensus & finalization...`;
+                // Step 2: Transaction submitted, entering validator consensus (Accepted stage)
+                renderProgress("accepted", txHash, "⏳ Transaction Proposing & Committing... Waiting for Consensus", `
+                    <div style="margin-bottom: 4px;"><strong>Audit ID:</strong> ${auditId}</div>
+                    <div style="margin-bottom: 4px;"><strong>Target:</strong> ${targetUrl}</div>
+                `);
 
                 // Allow consensus settlement time
                 await new Promise(resolve => setTimeout(resolve, 5000));
@@ -81,18 +122,17 @@
                     args: [auditId],
                 });
 
-                // ✅ Clearly display accepted & finalized state
-                reportBox.innerHTML = `
-                    <div style="color: #00ffcc; font-weight: bold; margin-bottom: 8px; font-size: 13px;">✓ ACCEPTED & FINALIZED Across GenLayer Validator Set</div>
+                // Step 3: Fully Accepted & Finalized across validator set
+                renderProgress("finalized", txHash, "✓ ACCEPTED Across GenLayer Validator Set", `
                     <div style="margin-bottom: 4px;"><strong>Audit ID:</strong> ${auditId}</div>
                     <div style="margin-bottom: 4px;"><strong>Target:</strong> ${targetUrl}</div>
                     <div style="margin-bottom: 6px;"><strong>Compliance Status:</strong> <span style="color: #34d399; font-size: 13px; font-weight: bold;">${status}</span></div>
-                    <div style="font-size: 11px; color: #94a3b8; word-break: break-all; margin-top: 6px; border-top: 1px solid #1e293b; padding-top: 6px;"><strong>Tx Hash:</strong> ${txHash}</div>
-                `;
+                `);
+
             } catch (error) {
                 reportBox.innerHTML = `<span style="color: #f87171;">❌ Error: ${error.message}</span>`;
             } finally {
-                // 🔓 Unlock button once the audit is fully completed and accepted
+                // Unlock button
                 btn.disabled = false;
                 btn.classList.remove("opacity-50", "cursor-not-allowed");
                 btn.innerText = "Run On-Chain Audit";
