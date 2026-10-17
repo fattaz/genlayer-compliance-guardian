@@ -3,67 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaskGuard | Autonomous Compliance Guardian</title>
+    <title>TaskGuard: Autonomous Web Policy & Compliance Guardian</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-center p-6">
     <div class="max-w-xl w-full bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-2xl">
-        <div class="flex items-center justify-between mb-4">
-            <h1 class="text-3xl font-bold text-emerald-400">TaskGuard</h1>
-            <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full font-mono">GenLayer DApp</span>
-        </div>
-        <p class="text-slate-400 mb-6 text-sm">Decentralized AI Regulatory & Compliance Auditor. Enforcing real-world web policies via validator consensus.</p>
+        <h1 class="text-2xl font-bold mb-2 text-cyan-400">TaskGuard DApp</h1>
+        <p class="text-sm text-slate-400 mb-6">Autonomous web policy enforcement powered by GenLayer consensus.</p>
         
         <div class="space-y-4">
             <div>
-                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Audit ID</label>
-                <input id="auditId" type="text" value="audit_001" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-100 focus:outline-none focus:border-emerald-500 font-mono text-sm">
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Audit ID</label>
+                <input id="audit-id" type="text" value="audit_001" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-cyan-500">
             </div>
             <div>
-                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Target Web URL</label>
-                <input id="targetUrl" type="text" placeholder="https://example.com" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-100 focus:outline-none focus:border-emerald-500 font-mono text-sm">
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Target Web URL</label>
+                <input id="target-url" type="text" value="https://example.com" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-cyan-500">
             </div>
             <div>
-                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1">Compliance Rules</label>
-                <textarea id="complianceRules" rows="3" placeholder="The page must contain clear heading elements and standard domain info." class="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-slate-100 focus:outline-none focus:border-emerald-500 text-sm"></textarea>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Compliance Rules</label>
+                <textarea id="rules" rows="3" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-cyan-500">Check if the page contains valid terms and secure headers.</textarea>
             </div>
-            <button onclick="runAudit()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 rounded-lg transition duration-200 shadow-lg cursor-pointer">Run On-Chain Audit</button>
+            
+            <button onclick="runAudit()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold py-3 rounded-lg transition-all shadow-lg shadow-cyan-900/50 cursor-pointer">
+                Run On-Chain Audit
+            </button>
         </div>
 
-        <div id="outputSection" class="mt-8 hidden border-t border-slate-800 pt-6">
-            <h2 class="text-sm font-semibold text-slate-300 uppercase tracking-wider mb-3">Consensus Audit Report</h2>
-            <div id="resultBox" class="bg-slate-950 border border-slate-800 rounded-lg p-4 font-mono text-xs text-slate-300 space-y-2"></div>
+        <div id="audit-report" class="mt-6 p-4 bg-slate-950 border border-slate-800 rounded-lg text-xs font-mono text-slate-300 min-h-[100px] flex flex-col justify-center">
+            Ready for execution. Enter details above and click run.
         </div>
     </div>
 
-    <script>
-        async function runAudit() {
-            const auditId = document.getElementById('auditId').value;
-            const targetUrl = document.getElementById('targetUrl').value;
-            const complianceRules = document.getElementById('complianceRules').value;
-            const outputSection = document.getElementById('outputSection');
-            const resultBox = document.getElementById('resultBox');
+    <script type="module">
+        import { createClient } from "https://esm.sh/genlayer-js";
+        import { studionet } from "https://esm.sh/genlayer-js/chains";
 
-            if (!targetUrl || !complianceRules) {
-                alert("Please fill in both the target URL and compliance rules.");
-                return;
-            }
+        const client = createClient({
+            chain: studionet,
+        });
 
-            outputSection.classList.remove('hidden');
-            resultBox.innerHTML = '<p class="text-amber-400 animate-pulse">⏳ Submitting transaction to GenLayer validators for decentralized consensus...</p>';
+        const CONTRACT_ADDRESS = "0x5fC1908ac836D0703723953b03C6A46670aECB44";
 
-            // Simulating network consensus response (integratable with GenLayerJS SDK client.write)
-            setTimeout(() => {
-                resultBox.innerHTML = `
-                    <p><span class="text-slate-500">Audit ID:</span> ${auditId}</p>
-                    <p><span class="text-slate-500">Target URL:</span> <a href="${targetUrl}" target="_blank" class="text-blue-400 underline">${targetUrl}</a></p>
-                    <p><span class="text-slate-500">Status:</span> <span class="text-emerald-400 font-bold">COMPLIANT</span></p>
-                    <p><span class="text-slate-500">Risk Severity:</span> <span class="text-blue-400 font-bold">NONE</span></p>
-                    <p><span class="text-slate-500">Confidence Tier:</span> <span class="text-purple-400 font-bold">HIGH</span></p>
-                    <p class="text-xs text-emerald-400 mt-3 font-sans font-semibold">✓ Consensus finalized across GenLayer validator set.</p>
+        window.runAudit = async function() {
+            const auditId = document.getElementById("audit-id").value;
+            const targetUrl = document.getElementById("target-url").value;
+            const rules = document.getElementById("rules").value;
+            const reportBox = document.getElementById("audit-report");
+
+            reportBox.innerHTML = "⏳ Submitting transaction to GenLayer validators for consensus...";
+
+            try {
+                const txHash = await client.writeContract({
+                    address: CONTRACT_ADDRESS,
+                    functionName: "run_audit",
+                    args: [auditId, targetUrl, rules],
+                });
+
+                reportBox.innerHTML = `⏳ Transaction submitted (${txHash.slice(0, 10)}...). Waiting for validator consensus...`;
+
+                const receipt = await client.waitForFinalization({ hash: txHash });
+
+                const status = await client.readContract({
+                    address: CONTRACT_ADDRESS,
+                    functionName: "get_audit_status",
+                    args: [auditId],
+                });
+
+                reportBox.innerHTML = `
+                    <div style="color: #00ffcc; font-weight: bold; margin-bottom: 6px;">✓ Consensus finalized across GenLayer validator set.</div>
+                    <div><strong>Audit ID:</strong> ${auditId}</div>
+                    <div><strong>Target:</strong> ${targetUrl}</div>
+                    <div><strong>Status:</strong> <span style="color: #34d399;">${status}</span></div>
+                    <div style="font-size: 10px; color: #64748b; margin-top: 6px;">Tx: ${txHash}</div>
                 `;
-            }, 3000);
-        }
+            } catch (error) {
+                reportBox.innerHTML = `<span style="color: #f87171;">❌ Error: ${error.message}</span>`;
+            }
+        };
     </script>
 </body>
 </html>
