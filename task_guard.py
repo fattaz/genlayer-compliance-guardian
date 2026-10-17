@@ -37,8 +37,11 @@ class TaskGuard(gl.Contract):
 
         # Non-deterministic block: runs web scraping and structured token evaluation
         def evaluate_compliance() -> str:
-            page_text = gl.nondet.web.render(clean_url, mode="text")
-            snippet = page_text[:2000].strip()
+            raw_text = gl.nondet.web.render(clean_url, mode="text")
+            
+            # Normalize whitespace to eliminate minor node-to-node rendering discrepancies
+            page_text = " ".join(str(raw_text).split())
+            snippet = page_text[:1200].strip()
 
             prompt = f"""
             You are an expert corporate compliance auditor.
